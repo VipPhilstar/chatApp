@@ -1,4 +1,6 @@
+import { Buffer } from 'buffer';
 import net from 'net';
+import { types } from './constants.js';
 
 export class DuplexServer {
   constructor(config) {
@@ -37,40 +39,58 @@ export class DuplexServer {
     socket.nickname = this.userPrefix + this.guestId;
     this.connections.add(socket);
 
-    this.sendMessage(socket, `Welcome to "ChatApp"!`);
-    this.sendBroadcastMessage(socket, `${socket.nickname} joined this chat.`);
+    this.sendMessage(
+      socket,
+      types.INITIAL,
+      Buffer.from(`Welcome to "ChatApp"!`),
+      'App'
+    );
+    this.sendBroadcastMessage(
+      socket,
+      types.CONNECT,
+      Buffer.from(`${socket.nickname} joined this chat.`)
+    );
   }
 
   onDisconnect(socket) {
     socket.on('end', () => {
       this.connections.delete(socket);
-      this.sendBroadcastMessage(socket, `${socket.nickname} left this chat!`);
+      this.sendBroadcastMessage(
+        socket,
+        types.DISCONNECT,
+        Buffer.from(`${socket.nickname} left this chat!`)
+      );
     });
   }
 
   onNewMessage(socket) {
     socket.on('data', (data) => {
       const parsedData = data.toString().replace(/\n$/, '');
-      const message = `${socket.nickname} ${parsedData}`;
-      this.sendBroadcastMessage(socket, message);
+      const message = parsedData;
+      this.sendBroadcastMessage(socket, types.MESSAGE, Buffer.from(message));
     });
   }
 
-  sendBroadcastMessage(socketFrom, message) {
+  sendBroadcastMessage(socketFrom, type, message) {
     if (this.connections.size === 0) {
       console.log('Everyone left the chat');
       return;
     }
 
-    console.log(message);
+    console.log(message.toString());
     this.connections.forEach(function (socket) {
       if (socket.nickname === socketFrom.nickname) return;
-      this.sendMessage(socket, message);
+      this.sendMessage(socket, type, message, socketFrom.nickname);
     }, this);
   }
 
-  sendMessage(socket, message) {
-    socket.write(message);
+  sendMessage(socket, type, message, nickname) {
+    const meta = Buffer.alloc(1);
+    meta[0] = type;
+    const nicknameData = Buffer.alloc(256);
+    nicknameData.write(nickname);
+    console.log(nicknameData.toString());
+    socket.write(Buffer.concat([meta, nicknameData, message]));
   }
 }
 
