@@ -32,7 +32,7 @@ export class DuplexServer {
     socket.nickname = `User${this.guestId}`;
     this.connections.add(socket);
 
-    this.sendMessage(socket, `Welcome to telnet chat!`);
+    this.sendMessage(socket, `Welcome to "ChatApp"!`);
     this.sendBroadcastMessage(socket, `${socket.nickname} joined this chat.`);
   }
 
