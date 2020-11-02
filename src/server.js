@@ -5,12 +5,11 @@ const config = {
 };
 
 export class DuplexServer {
-  guestId = 0;
-  connections = new Set();
-
   constructor(config) {
+    this.guestId = 0;
+    this.connections = new Set();
     this.port = config.port;
-    net
+    const server = net
       .createServer((socket) => {
         this.onConnect(socket);
         this.onNewMessage(socket);

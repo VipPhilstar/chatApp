@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "client": "node client.js",
-    "server": "node server.js"
+    "client": "node src/client.js",
+    "server": "node src/server.js"
   },
   "keywords": [],
   "author": "",

@@ -14,6 +14,10 @@ const clients = net.connect(config, () => {
   console.log('connected to server!');
 });
 
+clients.on('error', (error) => {
+  console.log(error.message);
+});
+
 clients.on('data', (data) => {
   process.stdout.clearLine(-1);
   process.stdout.cursorTo(0);
