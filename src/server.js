@@ -1,15 +1,15 @@
 import net from 'net';
 
-const config = {
-  port: 8080
-};
-
 export class DuplexServer {
   constructor(config) {
     this.guestId = 0;
     this.connections = new Set();
     this.port = config.port;
-    const server = net
+    this.userPrefix = config.userPrefix;
+  }
+
+  createServer() {
+    net
       .createServer((socket) => {
         this.onConnect(socket);
         this.onNewMessage(socket);
@@ -24,11 +24,17 @@ export class DuplexServer {
       .listen(this.port, () => {
         console.log('server start on port: ', this.port);
       });
+    return this;
+  }
+
+  changeUserPrefix(prefix) {
+    this.userPrefix = prefix;
+    return this;
   }
 
   onConnect(socket) {
     this.guestId++;
-    socket.nickname = `User${this.guestId}`;
+    socket.nickname = this.userPrefix + this.guestId;
     this.connections.add(socket);
 
     this.sendMessage(socket, `Welcome to "ChatApp"!`);
@@ -68,4 +74,9 @@ export class DuplexServer {
   }
 }
 
-new DuplexServer(config);
+const config = {
+  port: 8080,
+  userPrefix: 'User'
+};
+const server = new DuplexServer(config);
+server.createServer().changeUserPrefix('Guest');
